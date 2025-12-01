@@ -28,7 +28,7 @@ class BranchesServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->registerConfig();
+        
         $this->registerViews();
         $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
@@ -90,6 +90,7 @@ class BranchesServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerTranslations();
+        $this->registerConfig();
     }
 
     /**
