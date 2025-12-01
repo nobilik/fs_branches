@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use App\Conversation;
 use App\Events\CustomerCreatedConversation;
 use Modules\NobilikBranches\Observers\ConversationObserver; 
+use Modules\NobilikBranches\Services\FiasApiService;
 
 use Illuminate\Support\Facades\Log;
 
@@ -91,6 +92,21 @@ class BranchesServiceProvider extends ServiceProvider
     {
         $this->registerTranslations();
         $this->registerConfig();
+                // 2. ЯВНАЯ ПРИВЯЗКА: Принуждаем Laravel разрешать ключи перед созданием сервиса
+        $this->app->singleton(FiasApiService::class, function ($app) {
+            
+            /** @var Config $config */
+            $config = $app->make(Config::class);
+            
+            // Гарантируем, что ключи будут строками, даже если config() вернет null 
+            // в критический момент (хотя здесь он должен быть доступен).
+            // Используем env() как последний запасной вариант, если config() еще не загружен
+            $apiKey = $config->get(NB_MODULE . '.dadata.key') ?? env('DADATA_API_KEY') ?? '';
+            $secretKey = $config->get(NB_MODULE . '.dadata.secret') ?? env('DADATA_SECRET_KEY') ?? '';
+
+            // Создаем сервис и передаем ему ключи
+            return new FiasApiService($apiKey, $secretKey);
+        });
     }
 
     /**

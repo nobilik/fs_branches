@@ -17,12 +17,11 @@ class FiasApiService // Вероятно, класс следует переим
     protected string $secretKey; 
     protected Client $client; // Свойство для экземпляра Guzzle Client
 
-    public function __construct()
+    public function __construct(string $apiKey, string $secretKey)
     {
-        $moduleName = "nobilikbranches"; 
-        
-        $this->apiKey = config("{$moduleName}.dadata.key");
-        $this->secretKey = config("{$moduleName}.dadata.secret");
+        // Теперь $apiKey гарантированно является строкой, переданной из Service Provider
+        $this->apiKey = $apiKey;
+        $this->secretKey = $secretKey;
 
         // Если ключи не найдены, выбрасываем исключение
         if (empty($this->apiKey) || empty($this->secretKey)) {
