@@ -19,7 +19,7 @@ class FiasApiService // Вероятно, класс следует переим
 
     public function __construct()
     {
-        $moduleName = NB_MODULE; 
+        $moduleName = "nobilikbranches"; 
         
         $this->apiKey = config("{$moduleName}.dadata.key");
         $this->secretKey = config("{$moduleName}.dadata.secret");
