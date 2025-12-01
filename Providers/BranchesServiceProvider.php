@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use App\Conversation;
 use App\Events\CustomerCreatedConversation;
 use Modules\NobilikBranches\Observers\ConversationObserver; 
+use Illuminate\Contracts\Config\Repository as Config;
+
 use Modules\NobilikBranches\Services\FiasApiService;
 
 use Illuminate\Support\Facades\Log;
