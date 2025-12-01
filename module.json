@@ -1,0 +1,24 @@
+{
+    "name": "NobilikBranches",
+    "alias": "nobilikbranches",
+    "description": "Use NobilikBranches to supervise tags module.",
+    "version": "1.0.0",
+    "detailsUrl": "https://github.com/nobilik/fs_branches",
+    "author": "Nobilik",
+    "authorUrl": "https://github.com/nobilik",
+    "requiredAppVersion": "1.8.181",
+    "license": "AGPL-3.0",
+    "keywords": [],
+    "active": 0,
+    "order": 0,
+    "providers": [
+        "Modules\\NobilikBranches\\Providers\\BranchesServiceProvider"
+    ],
+    "aliases": {
+        "Branch": "Modules\\NobilikBranches\\Entities\\Branch"
+    },
+    "files": [
+        "start.php"
+    ],
+    "requires": []
+}

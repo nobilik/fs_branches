@@ -1,0 +1,24 @@
+{
+    "name": "nobilik/nobilikbranches",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nobilik"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\NobilikBranches\\Providers\\BranchesServiceProvider"
+            ],
+            "aliases": {
+                
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\NobilikBranches\\": ""
+        }
+    }
+}

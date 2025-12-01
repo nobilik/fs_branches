@@ -1,0 +1,231 @@
+/**
+ * Public/css/module.css for nobilikbranches
+ */
+
+/* Стили для кнопки тега в модальном окне или на странице настроек,
+   чтобы цвета тегов (background-color) хорошо смотрелись. */
+.tag-name {
+    /* Добавляем тень для лучшей читаемости текста на фоне ярких цветов тегов */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); 
+    color: white; /* Убеждаемся, что текст белый */
+}
+
+/* Стилизация для списка доступных тегов, чтобы они были компактными */
+.dropdown-menu li a {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Визуальное разделение между группами тегов */
+.panel[data-group-id] {
+    margin-bottom: 20px;
+}
+
+/* 1. Главный контейнер */
+    .app-container {
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 15px;
+    }
+
+    /* 2. Общие стили для секций */
+    .section-spacing {
+        margin-bottom: 20px;
+    }
+    
+    /* 3. Форма фильтрации */
+    .filter-card {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f8f8f8;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+    }
+    
+    /* Стили для элементов формы */
+    .form-input, .form-select, .form-button {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-button {
+        background-color: #6c757d; /* secondary */
+        color: white;
+        cursor: pointer;
+        border: none;
+    }
+
+    /* 4. Кнопка создания */
+    .create-button-row {
+        display: flex;
+        justify-content: flex-end; /* Выравнивание справа */
+        margin-bottom: 30px;
+    }
+    
+    .btn-primary {
+        padding: 10px 15px;
+        background-color: #007bff; /* primary */
+        color: white;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: 600;
+    }
+
+    /* 5. Список филиалов (Карточки 2 в ряд) */
+    .branch-list-grid {
+        display: grid;
+        /* На десктопе 2 колонки */
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    /* Адаптивность для мобильных устройств (1 карточка в ряд) */
+    @media (max-width: 768px) {
+        .branch-list-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* 6. Пагинация */
+    .pagination-wrapper {
+        margin-top: 20px;
+    }
+
+    /* --------------------
+   1. CARD BASE STYLES
+   -------------------- */
+.branch-card {
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Гарантируем одинаковую высоту, если карточки в сетке */
+}
+
+.branch-title {
+    margin-top: 0;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.branch-address-text,
+.branch-comment-text {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+.branch-comment-text {
+    color: #444;
+}
+
+/* --------------------
+   2. TAGS STYLES
+   -------------------- */
+.branch-tags-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.branch-tag {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    color: white;
+    background-color: #6c757d; /* Цвет по умолчанию, который может быть переопределен tag-c-{color} */
+    white-space: nowrap;
+}
+
+/* --------------------
+   3. ACTIONS & BUTTONS
+   -------------------- */
+.branch-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto; /* Прижимает кнопки к нижней части карточки */
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+}
+
+/* Базовые стили для всех кнопок/ссылок */
+.btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9em;
+    flex-grow: 1;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.branch-delete-form {
+    margin: 0;
+    flex-grow: 1;
+}
+
+.btn-edit {
+    background-color: #007bff; /* Синий */
+    color: white;
+}
+
+.btn-delete {
+    background-color: #dc3545; /* Красный */
+    color: white;
+}
+
+/* Стили для контейнера кнопок */
+.form-actions-container {
+    display: flex;
+    justify-content: flex-end; /* Выравнивание справа */
+    align-items: center;
+    margin-top: 20px;
+    margin-right: 50px;
+}
+
+/* Общие стили для кнопок */
+.app-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none; /* Для <a> тегов */
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+/* Стили для кнопки "Назад" (app-btn-secondary) */
+.app-btn-secondary {
+    background-color: #6c757d; /* Серый цвет */
+    color: white;
+    border: 1px solid #6c757d;
+}
+
+/* Стили для кнопки "Обновить" (app-btn-success) */
+.app-btn-success {
+    background-color: #28a745; /* Зеленый цвет */
+    color: white;
+    border: none;
+    border: 1px solid #28a745;
+}
+
+/* Утилитарный класс для отступа справа */
+.app-mr-10 {
+    margin-right: 10px;
+}

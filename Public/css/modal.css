@@ -1,0 +1,316 @@
+/* ========================= */
+/* Блокировка прокрутки фона */
+/* ========================= */
+.modal-open {
+    overflow: hidden;
+    padding-right: var(--scrollbar-width, 0); /* Добавляет отступ, чтобы предотвратить скачок содержимого при исчезновении скроллбара */
+}
+
+.mb-2 {
+    margin-bottom: 8px !important;
+}
+
+/* ========================= */
+/* Overlay (фон под модалкой) */
+/* ========================= */
+
+.branch-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: none; /* по умолчанию скрыт */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.branch-modal-overlay.open {
+    display: flex; /* открытие модалки */
+}
+
+/* ========================= */
+/* Само модальное окно       */
+/* ========================= */
+
+.branch-modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+}
+
+/* ========================= */
+/* Контейнер содержимого     */
+/* ========================= */
+
+.branch-modal__content {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    padding: 24px;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+/* ========================= */
+/* Заголовок                 */
+/* ========================= */
+
+.branch-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.branch-modal__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.branch-modal__close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #7a7a7a;
+    padding: 4px;
+    transition: color 0.2s ease;
+    font-size: 2em;
+}
+
+.branch-modal__close-btn:hover {
+    color: #4a4a4a;
+}
+
+
+/* ========================= */
+/* Тело модального окна      */
+/* ========================= */
+
+.branch-modal__body {
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+}
+
+.branch-modal__warning {
+    font-size: 14px;
+    color: #d32f2f;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.branch-modal__results {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 6px;
+        /* max-height: 30vh;  */
+    max-height: 40vh; 
+    
+    /* Обязательное свойство для прокрутки */
+    overflow-y: auto; 
+    
+    /* Опционально: немного отступа для красоты */
+    /* padding-right: 15px;  */
+}
+
+.branch-card-select {
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.branch-card-select .badge {
+    margin-right: 4px;
+}
+
+/* ========================= */
+/* Футер                     */
+/* ========================= */
+
+.branch-modal__footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e5e5;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.branch-card__button-container {
+    /* 1. Отталкивает контейнер кнопки вниз, занимая все доступное вертикальное пространство */
+    margin-top: auto; 
+    
+    /* 2. Выравнивает саму кнопку вправо внутри ее контейнера */
+    display: flex; /* Делаем контейнер кнопки flexbox */
+    justify-content: flex-end; /* Выравниваем содержимое вправо */
+}
+
+/* ========================= */
+/* Кнопка действия           */
+/* ========================= */
+
+.branch-modal__submit-btn,
+.js-create-branch {
+    width: 30%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    background: #4F46E5;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.2s ease;
+}
+
+.branch-modal__submit-btn:hover,
+.js-create-branch:hover {
+    background: #4338CA;
+}
+
+.branch-modal__submit-btn:disabled,
+.js-create-branch:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+
+/* creation form */
+
+/* ----- Branch Create/Edit Form ----- */
+
+.branch-form {
+    padding: 20px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.branch-form__group {
+    display: flex;
+    flex-direction: column;
+}
+
+.branch-form__label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.branch-form__input,
+.branch-form__textarea,
+.branch-form__select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: all .2s ease;
+}
+
+.branch-form__input:focus,
+.branch-form__textarea:focus,
+.branch-form__select:focus {
+    border-color: #5b9df9;
+    box-shadow: 0 0 0 3px rgba(91,157,249,0.25);
+    outline: none;
+}
+
+.branch-form__textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Красивые мультиселекты */
+.branch-form__select[multiple] {
+    height: auto;
+    max-height: 140px;
+    overflow-y: auto;
+}
+
+/* Стили внутри модалки */
+.branch-modal--create .branch-modal__content {
+    max-width: 600px;
+    width: 100%;
+}
+
+.branch-modal--create .branch-modal__title {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+/* Footer */
+.branch-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.branch-modal__submit-btn {
+    padding: 8px 18px;
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.branch-modal__submit-btn:hover {
+    background: #218838;
+}
+
+/* Обёртка формы — чтобы красиво центрировалась */
+.branch-create-form-wrapper {
+    padding: 10px 5px 20px;
+}
+
+/* Карточка формы */
+.branch-create-form {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px 25px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    width: 100%;
+}
+
+/* Поля формы */
+.branch-create-form .form-control,
+.branch-create-form .form-select,
+.branch-create-form textarea {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Лейблы */
+.branch-create-form label {
+    font-weight: 600;
+}
+
+/* Кнопка */
+#branch-create-submit {
+    border-radius: 8px;
+    font-size: 15px;
+    padding: 12px;
+}
+
