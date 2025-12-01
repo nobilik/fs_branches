@@ -19,6 +19,7 @@ class FiasApiService // Вероятно, класс следует переим
 
     public function __construct(string $apiKey, string $secretKey)
     {
+        $moduleName = "nobilikbranches"; 
         // Теперь $apiKey гарантированно является строкой, переданной из Service Provider
         $this->apiKey = $apiKey;
         $this->secretKey = $secretKey;
