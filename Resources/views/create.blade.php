@@ -9,17 +9,17 @@
         <input type="hidden" name="_method" value="POST">
         @include('nobilikbranches::partials.form')
 
-        <div class="form-actions-container">
+        <div class="branch-form-actions-container">
             
             {{-- Кнопка "Назад" (серый стиль) --}}
             <a href="{{ route('branches.index') }}" 
-               class="app-btn app-btn-secondary app-mr-10">
+               class="branch-btn branch-btn-secondary branch-mr-10">
                 Назад
             </a>
             
             {{-- Кнопка "Сохранить" (зеленый стиль) --}}
             <button type="submit" 
-                    class="app-btn app-btn-success">
+                    class="branch-btn branch-btn-success">
                 Сохранить
             </button>
         </div>

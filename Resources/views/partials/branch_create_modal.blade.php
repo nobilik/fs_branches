@@ -9,7 +9,7 @@
                 <form id="branch-create-form">
                     @include('nobilikbranches::partials.form')
                     <input type="hidden" name="conversation_id" id="branch-conversation-id">
-                    <button type="submit" class="branch-modal__submit-btn btn btn-success w-100 mt-3" id="branch-create-submit">Создать и привязать</button>
+                    <button type="submit" class="branch-modal__submit-btn branch-btn btn-success w-100 mt-3" id="branch-create-submit">Создать и привязать</button>
                 </form>
             </div>
         </div>

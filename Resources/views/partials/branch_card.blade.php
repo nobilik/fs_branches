@@ -23,12 +23,12 @@
     <div class="branch-actions">
         
         {{-- Кнопка "Изменить" (синяя) --}}
-        <a href="{{ route('branches.edit', $branch) }}" class="btn btn-edit">
+        <a href="{{ route('branches.edit', $branch) }}" class="branch-btn branch-btn-edit">
             Изменить
         </a>
             
         <button type="button" 
-                class="btn btn-delete js-branch-delete"
+                class="branch-btn branch-btn-delete js-branch-delete"
                 data-id="{{ $branch->id }}">
             Удалить
         </button>

@@ -296,7 +296,7 @@
 
 /* Поля формы */
 .branch-create-form .form-control,
-.branch-create-form .form-select,
+.branch-create-form .branch-form-select,
 .branch-create-form textarea {
     border-radius: 8px;
     padding: 10px;

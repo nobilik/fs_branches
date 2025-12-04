@@ -2,32 +2,32 @@
 
 @section('content')
 
-<div class="app-container">
+<div class="branch-container">
 
     {{-- 1. Заголовок (Отдельный ряд) --}}
-    <div class="section-spacing">
+    <div class="branch-section-spacing">
         <h3>Филиалы</h3>
     </div>
 
 {{-- 2. Форма единой фильтрации (Во всю ширину) --}}
-    <div class="section-spacing">
-        <div class="filter-card">
-            <form method="GET" class="filter-grid filter-grid-single-field">
+    <div class="branch-section-spacing">
+        <div class="branch-filter-card">
+            <form method="GET" class="branch-filter-grid branch-filter-grid-single-field">
                 
                 {{-- Единое поле для поиска по названию, адресу и тегу --}}
                 <input type="text" name="q" value="{{ request('q') }}"
                        placeholder="Поиск по названию, адресу или тегу..."
-                       class="form-input search-input">
+                       class="branch-form-input search-input">
                 
-                <button class="form-button">Поиск</button>
+                <button class="branch-form-button">Поиск</button>
                 
             </form>
         </div>
     </div>
 
     {{-- 3. Кнопка создания филиала (Справа) --}}
-    <div class="create-button-row">
-        <a href="{{ route('branches.create') }}" class="btn-primary">Создать филиал</a>
+    <div class="branch-create-button-row">
+        <a href="{{ route('branches.create') }}" class="branch-btn-primary">Создать филиал</a>
     </div>
 
     {{-- 4. Список филиалов (Две карточки в ряд) --}}
@@ -41,7 +41,7 @@
     </div>
 
     {{-- 5. Пагинация --}}
-    <div class="pagination-wrapper">
+    <div class="branch-pagination-wrapper">
         {{ $branches->links() }}
     </div>
 
