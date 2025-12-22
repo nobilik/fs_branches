@@ -166,7 +166,10 @@ class BranchController extends Controller
                 [
                     'full_address' => $request->full_address,
                     // Добавляем сохранение метаданных
-                    'meta' => $request->filled('address_meta') ? json_decode($request->address_meta, true) : null,
+                'meta' => $request->filled('address_meta') 
+                    ? (is_array($request->address_meta) ? $request->address_meta : json_decode($request->address_meta, true))
+                    : null,
+                    // 'meta' => $request->filled('address_meta') ? json_decode($request->address_meta, true) : null,
                 ]
             );
 
