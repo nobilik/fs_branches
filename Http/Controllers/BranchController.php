@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Log;
 class BranchController extends Controller
 {
     /**
-     * Список филиалов с фильтрацией.
+     * Список объектов с фильтрацией.
      */
         public function index(Request $request)
     {
@@ -43,7 +43,7 @@ class BranchController extends Controller
         // Получаем все теги для выпадающего списка фильтрации
         $tags = Tag::all();
 
-        // Передаем и филиалы, и теги в представление.
+        // Передаем и объекты, и теги в представление.
         return view('nobilikbranches::index', compact('branches', 'tags'));
     }
     // public function index(Request $request)
@@ -73,12 +73,12 @@ class BranchController extends Controller
     //     // Получаем все теги для выпадающего списка фильтрации
     //     $tags = Tag::all(); // Предполагая, что Tag находится в Modules\Tags\Entities\Tag
 
-    //     // Передаем и филиалы, и теги в представление
+    //     // Передаем и объекты, и теги в представление
     //     return view('nobilikbranches::index', compact('branches', 'tags'));
     // }
 
     /**
-     * Форма создания филиала.
+     * Форма создания объекта.
      */
     public function create()
     {
@@ -86,14 +86,14 @@ class BranchController extends Controller
     }
 
     /**
-     * Сохранение нового филиала с поддержкой AJAX и обычной формы.
+     * Сохранение нового объекта с поддержкой AJAX и обычной формы.
      *
      * @param  \App\Http\Requests\StoreBranchRequest  $request
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
     public function store(StoreBranchRequest $request)
     {
-        // Вся логика создания филиала остается внутри транзакции
+        // Вся логика создания объекта остается внутри транзакции
         $branch = DB::transaction(function () use ($request) {
             
             // 1. Создание или поиск адреса
@@ -106,7 +106,7 @@ class BranchController extends Controller
                 ]
             );
 
-            // 2. Создание филиала
+            // 2. Создание объекта
             $branch = Branch::create([
                 'name' => $request->name,
                 'address_id' => $address->id,
@@ -132,13 +132,13 @@ class BranchController extends Controller
         if ($request->wantsJson()) {
             // AJAX-ответ: возвращаем JSON с созданным объектом и статусом 201
             return response()->json([
-                'message' => 'Филиал успешно создан.',
+                'message' => 'Объект успешно создан.',
                 'branch' => $branch,
             ], 201); // 201 Created
         }
 
         // Обычный POST-запрос: возвращаем редирект
-        return redirect()->route('branches.index')->with('success', 'Филиал создан');
+        return redirect()->route('branches.index')->with('success', 'Объект создан');
     }
 
     /**
@@ -152,7 +152,7 @@ class BranchController extends Controller
     }
 
     /**
-     * Обновление филиала.
+     * Обновление объекта.
      */
     public function update(UpdateBranchRequest $request, $branchId)
     {
@@ -173,7 +173,7 @@ class BranchController extends Controller
                 ]
             );
 
-            // 2. Обновление филиала
+            // 2. Обновление объекта
             $branch->update([
                 'name' => $request->name,
                 'address_id' => $address->id,
@@ -201,23 +201,23 @@ class BranchController extends Controller
         if ($request->wantsJson()) {
             // AJAX-ответ: возвращаем JSON с обновленным объектом
             return response()->json([
-                'message' => 'Филиал успешно обновлен.',
+                'message' => 'Объект успешно обновлен.',
                 'branch' => $branch,
             ], 200); // 200 OK
         }
 
         // Обычный POST-запрос: возвращаем редирект
-        return redirect()->route('branches.index')->with('success', 'Филиал обновлён');
+        return redirect()->route('branches.index')->with('success', 'Объект обновлён');
     }
 
     /**
-     * Удаление филиала.
+     * Удаление объекта.
      * * @param \Modules\NobilikBranches\Entities\Branch $branch
      * @return \Illuminate\Http\Response
      */
     public function destroy(Request $request, $branchId)
     {
-        // Находим филиал вручную. Если не найден, Laravel бросит 404.
+        // Находим объект вручную. Если не найден, Laravel бросит 404.
         $branch = Branch::findOrFail($branchId);
         
         // Используем транзакцию, чтобы обеспечить атомарность операций удаления
@@ -230,9 +230,9 @@ class BranchController extends Controller
             // 2. Сохраняем ID адреса, чтобы проверить его позже
             $addressId = $branch->address_id;
 
-            // 3. Удаление самого филиала
+            // 3. Удаление самого объекта
             // Eloquent автоматически обработает удаление связей в таблице tickets (если связь настроена на CASCADE)
-            // Если нет, тикеты, связанные с этим филиалом, должны быть обработаны до удаления.
+            // Если нет, тикеты, связанные с этим объектом, должны быть обработаны до удаления.
             // Если тикеты связаны с адресом, это не влияет на их удаление.
             $branch->delete();
             
@@ -242,7 +242,7 @@ class BranchController extends Controller
             if ($addressId) {
                 $isAddressUsed = Branch::where('address_id', $addressId)->exists();
                 
-                // Удаляем адрес, только если он не используется другими филиалами
+                // Удаляем адрес, только если он не используется другими объектами
                 if (!$isAddressUsed) {
                     $address = \Modules\Addresses\Entities\Address::find($addressId); // Замените на фактическую модель Address
                     if ($address) {
@@ -252,7 +252,7 @@ class BranchController extends Controller
             }
             */
             
-            // Если тикеты (tickets) были связаны непосредственно с этим филиалом (one-to-many),
+            // Если тикеты (tickets) были связаны непосредственно с этим объектом (one-to-many),
             // необходимо убедиться, что их foreign key (branch_id) имеет значение ON DELETE CASCADE в миграции,
             // иначе они должны быть удалены или обновлены здесь.
             // Предполагаем, что CASCADE настроен.
@@ -263,16 +263,16 @@ class BranchController extends Controller
         if (request()->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Филиал удален.'
+                'message' => 'Объект удален.'
             ], 200);
         }
 
-        return redirect()->route('branches.index')->with('success', 'Филиал удален.');
+        return redirect()->route('branches.index')->with('success', 'Объект удален.');
     }
 
 
     /**
-     * Прикрепление филиала к тикету.
+     * Прикрепление объекта к тикету.
      */
     public function attachToConversation(Request $request, $branchId)
     {
@@ -281,7 +281,7 @@ class BranchController extends Controller
         $conversation = Conversation::findOrFail($request->conversation_id);
         $branch = Branch::findOrFail($branchId);
 
-        // Теги филиала (только ID)
+        // Теги объекта (только ID)
         $branchTags = $branch->tagIds(); 
         
         // Теги, которые УЖЕ привязаны к заявке (только ID)
@@ -300,7 +300,7 @@ class BranchController extends Controller
         // Все теги, принадлежащие хотя бы одной группе
         $allGroupedTagIds = $groups->pluck('tags.*.id')->flatten()->unique()->toArray();
         
-        // Теги филиала, не принадлежащие ни одной группе
+        // Теги объекта, не принадлежащие ни одной группе
         $ungroupedBranchTags = array_diff($branchTags, $allGroupedTagIds);
         
         // Просто добавляем эти теги в финальный список (без проверок)
@@ -311,7 +311,7 @@ class BranchController extends Controller
         foreach ($groups as $group) {
             $maxTags = (int) $group->max_tags_for_conversation; 
             
-            // Теги этой группы у филиала
+            // Теги этой группы у объекта
             $branchGroupTags = array_intersect($branchTags, $group->tags->pluck('id')->toArray());
             
             // Теги этой группы, которые УЖЕ есть в финальном списке (включая те, что были изначально)
@@ -319,7 +319,7 @@ class BranchController extends Controller
             
             $newTagsCount = count($branchGroupTags);
             
-            // Если у филиала есть теги этой группы и есть лимит (> 0)
+            // Если у объекта есть теги этой группы и есть лимит (> 0)
             if ($maxTags > 0 && $newTagsCount > 0) {
                 
                 // СЛУЧАЙ: ЗАМЕНА или ДОБАВЛЕНИЕ С ЛИМИТОМ
@@ -327,13 +327,13 @@ class BranchController extends Controller
                 // 1. Удаляем существующие теги этой группы из финального списка
                 $finalTags = array_diff($finalTags, $convGroupTags);
                 
-                // 2. Добавляем теги филиала, но только в пределах лимита
+                // 2. Добавляем теги объекта, но только в пределах лимита
                 $tagsToAdd = array_slice($branchGroupTags, 0, $maxTags);
                 $finalTags = array_merge($finalTags, $tagsToAdd);
                 
             } else if ($maxTags == 0 && $newTagsCount > 0) {
                 
-                // СЛУЧАЙ: ЛИМИТА НЕТ (просто добавляем все теги филиала этой группы)
+                // СЛУЧАЙ: ЛИМИТА НЕТ (просто добавляем все теги объекта этой группы)
                 $finalTags = array_unique(array_merge($finalTags, $branchGroupTags));
                 
             }
@@ -356,7 +356,7 @@ class BranchController extends Controller
             }
         }
 
-        // --- 5. Привязка филиала к заявке ---
+        // --- 5. Привязка объекта к заявке ---
         
         $conversationBranch = ConversationBranch::firstOrNew(
             ['conversation_id' => $conversation->id]
@@ -378,7 +378,7 @@ class BranchController extends Controller
 //         $conversation = Conversation::findOrFail($request->conversation_id);
 //         $branch = Branch::findOrFail($branchId);
 
-//         // Теги филиала (только ID)
+//         // Теги объекта (только ID)
 //         $branchTags = $branch->tagIds(); 
         
 //         // Теги, которые УЖЕ привязаны к заявке (только ID)
@@ -398,7 +398,7 @@ class BranchController extends Controller
 //         foreach ($groups as $group) {
 //             $maxTags = (int) $group->max_tags_for_conversation; 
             
-//             // Теги этой группы у филиала
+//             // Теги этой группы у объекта
 //             $branchGroupTags = array_intersect($branchTags, $group->tags->pluck('id')->toArray());
             
 //             // Теги этой группы, которые УЖЕ есть в заявке
@@ -407,7 +407,7 @@ class BranchController extends Controller
 //             $newTagsCount = count($branchGroupTags);
 //             $currentCount = count($convGroupTags);
             
-//             // Если у филиала есть теги этой группы и есть лимит
+//             // Если у объекта есть теги этой группы и есть лимит
 //             if ($maxTags > 0 && $newTagsCount > 0) {
                 
 //                 // СЛУЧАЙ: ЗАМЕНА или ДОБАВЛЕНИЕ С ЛИМИТОМ
@@ -415,7 +415,7 @@ class BranchController extends Controller
 //                 // Удаляем существующие теги этой группы из финального списка
 //                 $finalTags = array_diff($finalTags, $convGroupTags);
                 
-//                 // Добавляем теги филиала, но только в пределах лимита
+//                 // Добавляем теги объекта, но только в пределах лимита
 //                 $tagsToAdd = array_slice($branchGroupTags, 0, $maxTags);
 //                 $finalTags = array_merge($finalTags, $tagsToAdd);
                 
@@ -444,7 +444,7 @@ class BranchController extends Controller
 //             }
 //         }
 
-//         // --- 4. Привязка филиала к заявке ---
+//         // --- 4. Привязка объекта к заявке ---
         
 //         $conversationBranch = ConversationBranch::firstOrNew(
 //             ['conversation_id' => $conversation->id]
@@ -460,8 +460,8 @@ class BranchController extends Controller
 
 
     /**
-     * AJAX поиск филиалов для выбора в модалке
-     * По имени филиала, полному адресу и имени тега
+     * AJAX поиск объектов для выбора в модалке
+     * По имени объекта, полному адресу и имени тега
      */
     public function search(Request $request)
     {

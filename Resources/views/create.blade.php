@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h3 class="mb-3">Создать филиал</h3>
+    <h3 class="mb-3">Создать объект</h3>
 
     <form action="{{ route('branches.store') }}" method="POST">
         <input type="hidden" name="_token" value="{{ csrf_token() }}">

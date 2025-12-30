@@ -4,7 +4,7 @@
 
             <!-- Заголовок -->
             <div class="branch-modal__header">
-                <h3 class="branch-modal__title">Выбор филиала</h3>
+                <h3 class="branch-modal__title">Выбор объекта</h3>
                 <button type="button" class="js-create-branch" id="js-create-branch-btn">Создать</button>
                 <button type="button" class="branch-modal__close-btn js-close-branch-modal">&times;</button>
             </div>

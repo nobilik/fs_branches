@@ -14,11 +14,11 @@ class BranchTagService
     /**
      * Прикрепляет branch к conversation и копирует теги.
      * Логика:
-     *  - получить теги филиала
+     *  - получить теги объекта
      *  - для каждой группы с ограничением max_tags_for_conversation проверять конфликт:
      *      если у conversation уже есть теги из этой группы и branch содержит теги из той же группы,
-     *      то заменяем (удаляем теги conversation из этой группы и прикрепляем теги филиала).
-     *  - Иначе просто прикрепляем теги филиала (attachToConversation).
+     *      то заменяем (удаляем теги conversation из этой группы и прикрепляем теги объекта).
+     *  - Иначе просто прикрепляем теги объекта (attachToConversation).
      *
      * Возвращает ассоциативный массив результат.
      */
@@ -37,7 +37,7 @@ class BranchTagService
             ['branch_id' => $branchId, 'updated_at' => now(), 'created_at' => now()]
         );
 
-        // 2) получаем id тегов филиала
+        // 2) получаем id тегов объекта
         $branchTagIds = $branch->tags()->pluck('tags.id')->toArray();
 
         if (empty($branchTagIds)) {
@@ -72,7 +72,7 @@ class BranchTagService
                     DB::table('conversation_tag')->where('conversation_id', $conversationId)
                         ->whereIn('tag_id', $existingInConv)->delete();
 
-                    // затем прикрепляем теги филиала (но не более лимита)
+                    // затем прикрепляем теги объекта (но не более лимита)
                     $toAttach = array_slice($branchInGroup, 0, $group->max_tags_for_conversation);
                     foreach ($toAttach as $tid) {
                         $tag = Tag::find($tid);
@@ -83,7 +83,7 @@ class BranchTagService
                 }
             }
 
-            // иначе: просто прикрепляем теги филиала, если они ещё не прикреплены
+            // иначе: просто прикрепляем теги объекта, если они ещё не прикреплены
             foreach ($branchInGroup as $tid) {
                 $already = ConversationTag::where('conversation_id', $conversationId)
                     ->where('tag_id', $tid)->exists();

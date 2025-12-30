@@ -1,9 +1,9 @@
-// settings.js — логика списка филиалов в разделе настроек
+// settings.js — логика списка объектов в разделе настроек
 
 (function() {
     'use strict';
     document.addEventListener('DOMContentLoaded', function() {
-        // пример: AJAX-поиск филиалов в списке
+        // пример: AJAX-поиск объектов в списке
         const searchInput = document.querySelector('#settings-branch-search');
         const list = document.querySelector('#settings-branch-list');
 
@@ -25,7 +25,7 @@
             const btn = e.target.closest('.js-branch-delete');
             if (!btn) return;
 
-            if (!confirm("Удалить филиал?")) return;
+            if (!confirm("Удалить объект?")) return;
 
             const id = btn.dataset.id;
 

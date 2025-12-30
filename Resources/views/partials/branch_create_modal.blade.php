@@ -2,7 +2,7 @@
     <div class="branch-modal">
         <div class="branch-modal__content">
             <div class="branch-modal__header">
-                <h5 class="branch-modal__title">Создать филиал</h5>
+                <h5 class="branch-modal__title">Создать объект</h5>
                 <button type="button" class="branch-modal__close-btn js-close-modal">&times;</button>
             </div>
             <div class="branch-modal__body">

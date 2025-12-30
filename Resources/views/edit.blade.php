@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h3 class="mb-3">Редактировать филиал: {{ $branch->name }}</h3>
+    <h3 class="mb-3">Редактировать объект: {{ $branch->name }}</h3>
 
     <form action="{{ route('branches.update', $branch) }}" method="POST">
         <input type="hidden" name="_token" value="{{ csrf_token() }}">

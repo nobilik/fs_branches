@@ -1,4 +1,4 @@
-// conversation.js — управление филиалами в карточке заявки с подсветкой и дебаунсом
+// conversation.js — управление объектами в карточке заявки с подсветкой и дебаунсом
 (function() {
     'use strict';
     document.addEventListener('DOMContentLoaded', function() {
@@ -22,7 +22,7 @@
         const createBranchForm = document.getElementById('branch-create-form');
 
         // ========================
-        // Открытие модалки выбора филиала
+        // Открытие модалки выбора объекта
         // ========================
         document.querySelectorAll('.js-open-branch-modal').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -51,7 +51,7 @@
         });
 
         // ========================
-        // Поиск филиалов с debounce
+        // Поиск объектов с debounce
         // ========================
         let debounceTimer = null;
         searchInput.addEventListener('input', function() {
@@ -121,7 +121,7 @@
         }
 
         // ========================
-        // Привязка выбранного филиала
+        // Привязка выбранного объекта
         // ========================
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.js-attach-branch');
@@ -131,7 +131,7 @@
             const conversationId = overlay.dataset.conversationId;
 
             if (!branchId || !conversationId) {
-                alert('Не выбран филиал или не найдена заявка');
+                alert('Не выбран объект или не найдена заявка');
                 return;
             }
 
@@ -166,14 +166,14 @@
         });
 
         // ========================
-        // Отвязка филиала
+        // Отвязка объекта
         // ========================
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.js-remove-branch');
             if (!btn) return;
 
             e.preventDefault();
-            if (!confirm('Отвязать филиал от заявки?')) return;
+            if (!confirm('Отвязать объект от заявки?')) return;
 
             const conversationId = btn.dataset.conversationId;
             const token = document.querySelector('meta[name="csrf-token"]').content;
@@ -195,12 +195,12 @@
             })
             .catch(err => {
                 console.error(err);
-                alert('Ошибка на сервере при отвязке филиала');
+                alert('Ошибка на сервере при отвязке объекта');
             });
         });
 
         // ========================
-        // Создание нового филиала
+        // Создание нового объекта
         // ========================
         if (createBranchBtn && createBranchOverlay && createBranchForm) {
             createBranchBtn.addEventListener('click', function() {
@@ -245,7 +245,7 @@
                         // Мы все равно пытаемся получить тело JSON для ошибки
                         return res.json().then(errorData => {
                             // Бросаем ошибку, используя сообщение из ответа сервера
-                            throw new Error(errorData.message || 'Ошибка сервера при создании филиала');
+                            throw new Error(errorData.message || 'Ошибка сервера при создании объекта');
                         });
                     }
                     return res.json();

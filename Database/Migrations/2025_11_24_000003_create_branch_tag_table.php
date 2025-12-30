@@ -21,7 +21,7 @@ class CreateBranchTagTable extends Migration
             // tags таблица в FreeScout может быть в другой неймспейсе и называться `tags`
             $table->foreign('tag_id')->references('id')->on('tags')->onDelete('cascade');
 
-            // уникальность: один тег не должен быть повторно привязан к одному филиалу
+            // уникальность: один тег не должен быть повторно привязан к одному объекту
             $table->unique(['branch_id', 'tag_id']);
         });
     }

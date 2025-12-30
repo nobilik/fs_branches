@@ -9,7 +9,7 @@ Route::group([
 
 
     // ============================
-    // Прикрепление филиала к заявке
+    // Прикрепление объекта к заявке
     // ============================
     Route::post('/branches/{branch}/attach', [
         'uses' => 'BranchController@attachToConversation',
@@ -19,7 +19,7 @@ Route::group([
     ])->name('branches.attach');
 
     // ============================
-    // AJAX поиск филиалов (для модалки)
+    // AJAX поиск объектов (для модалки)
     // ============================
     Route::get('/branches/search', [
         'uses' => 'BranchController@search',
@@ -29,9 +29,9 @@ Route::group([
     ])->name('branches.search');
 
     // ============================
-    // CRUD филиалов
+    // CRUD объектов
     // ============================
-    // Список филиалов
+    // Список объектов
     Route::get('/branches', [
         'uses' => 'BranchController@index',
         'middleware' => ['auth', 'roles'],
@@ -47,7 +47,7 @@ Route::group([
         'laroute' => true
     ])->name('branches.create');
 
-    // Сохранение нового филиала
+    // Сохранение нового объекта
     Route::post('/branches', [
         'uses' => 'BranchController@store',
         'middleware' => ['auth', 'roles'],
@@ -63,7 +63,7 @@ Route::group([
         'laroute' => true
     ])->name('branches.edit');
 
-    // Обновление филиала
+    // Обновление объекта
     Route::put('/branches/{branch}', [
         'uses' => 'BranchController@update',
         'middleware' => ['auth', 'roles'],
@@ -71,7 +71,7 @@ Route::group([
         'laroute' => true
     ])->name('branches.update');
 
-    // Удаление филиала
+    // Удаление объекта
     Route::delete('/branches/{branch}', [
         'uses' => 'BranchController@destroy',
         'middleware' => ['auth', 'roles'],
@@ -87,7 +87,7 @@ Route::group([
         'laroute' => true
     ])->name('branches.tags.create');
 
-    // 1. Список филиалов по тегу
+    // 1. Список объектов по тегу
     Route::get('/branches/tag/{tag}', [
         'uses' => 'BranchController@branchesByTag',
         'middleware' => ['auth', 'roles'],
@@ -95,7 +95,7 @@ Route::group([
         'laroute' => true
     ])->name('branches.byTag');
 
-    // 2. Привязать тег к филиалу
+    // 2. Привязать тег к объекту
     Route::post('/branches/{branch}/tags', [
         'uses' => 'BranchController@attach',
         'middleware' => ['auth', 'roles'],
@@ -103,7 +103,7 @@ Route::group([
         'laroute' => true
     ])->name('branches.tags.attach');
 
-    // 3. Отвязать тег от филиала
+    // 3. Отвязать тег от объекта
     Route::delete('/branches/{branch}/tags/{tag}', [
         'uses' => 'BranchController@detach',
         'middleware' => ['auth', 'roles'],

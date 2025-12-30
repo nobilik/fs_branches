@@ -7,7 +7,7 @@ class UpdateBranchRequest extends BaseBranchRequest
 {
     public function authorize()
     {
-        // Здесь можно добавить проверку, что пользователь имеет право обновлять этот филиал
+        // Здесь можно добавить проверку, что пользователь имеет право обновлять этот объект
         return true;
     }
 

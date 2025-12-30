@@ -6,7 +6,7 @@
 
     {{-- 1. Заголовок (Отдельный ряд) --}}
     <div class="branch-section-spacing">
-        <h3>Филиалы</h3>
+        <h3>Объекты</h3>
     </div>
 
 {{-- 2. Форма единой фильтрации (Во всю ширину) --}}
@@ -25,12 +25,12 @@
         </div>
     </div>
 
-    {{-- 3. Кнопка создания филиала (Справа) --}}
+    {{-- 3. Кнопка создания объекта (Справа) --}}
     <div class="branch-create-button-row">
-        <a href="{{ route('branches.create') }}" class="branch-btn-primary">Создать филиал</a>
+        <a href="{{ route('branches.create') }}" class="branch-btn-primary">Создать объект</a>
     </div>
 
-    {{-- 4. Список филиалов (Две карточки в ряд) --}}
+    {{-- 4. Список объектов (Две карточки в ряд) --}}
     <div class="branch-list-grid">
         @foreach($branches as $branch)
             {{-- Предполагается, что branch_card содержит минимальную разметку без внешних классов сетки --}}

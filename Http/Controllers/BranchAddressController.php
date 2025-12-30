@@ -132,7 +132,7 @@ class BranchAddressController extends Controller
      */
     public function destroy(Address $address)
     {
-        // Добавьте проверку на привязку адреса к филиалам, если необходимо
+        // Добавьте проверку на привязку адреса к объектам, если необходимо
         $address->delete();
         return response()->json(['deleted' => true]);
     }

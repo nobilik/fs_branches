@@ -19,7 +19,7 @@ class Branch extends Model
     ];
 
     /**
-     * Один филиал — один адрес
+     * Один объект — один адрес
      */
     public function address()
     {
@@ -27,7 +27,7 @@ class Branch extends Model
     }
 
     /**
-     * Теги филиала
+     * Теги объекта
      * Используем настоящую модель тегов FreeScout: Modules\Tags\Entities\Tag
      * ->withTimestamps(); ???
      */ 
@@ -47,7 +47,7 @@ class Branch extends Model
     }
 
     /**
-     * Тикеты, относящиеся к филиалу
+     * Тикеты, относящиеся к объекту
      */
     public function conversations()
     {
@@ -75,12 +75,12 @@ class Branch extends Model
 
     // public function conversationLinks()
     // {
-    //     // Филиал может быть связан со многими записями в промежуточной таблице
+    //     // Объект может быть связан со многими записями в промежуточной таблице
     //     return $this->hasMany(ConversationBranch::class, 'branch_id', 'id');
     // }
 
     // /**
-    //  * Метод получения тикетов по филиалу.
+    //  * Метод получения тикетов по объекту.
     //  * $branch->conversations
     //  */
     // public function conversations()
@@ -97,7 +97,7 @@ class Branch extends Model
     // }
 
     /**
-     * Scope для поиска филиалов по имени, адресу или тегам.
+     * Scope для поиска объектов по имени, адресу или тегам.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string  $searchQuery

@@ -3,7 +3,7 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">Прикрепить филиал к заявке</h5>
+                <h5 class="modal-title">Прикрепить объект к заявке</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 

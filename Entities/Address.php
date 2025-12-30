@@ -15,7 +15,7 @@ class Address extends Model
         'meta',
     ];
 
-    // На одном адресе может быть несколько филиалов
+    // На одном адресе может быть несколько объектов
     public function branches()
     {
         return $this->hasMany(Branch::class, 'address_id');
