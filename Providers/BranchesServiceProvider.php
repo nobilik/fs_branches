@@ -106,6 +106,16 @@ class BranchesServiceProvider extends ServiceProvider
             $apiKey = $config->get(NB_MODULE . '.dadata.key') ?? env('DADATA_API_KEY') ?? '';
             $secretKey = $config->get(NB_MODULE . '.dadata.secret') ?? env('DADATA_SECRET_KEY') ?? '';
 
+            // Debug: log which sources provided keys (do NOT log secret values)
+            Log::debug('NobilikBranches: resolved Dadata keys', [
+                'config_key' => $config->get(NB_MODULE . '.dadata.key'),
+                'config_secret' => $config->get(NB_MODULE . '.dadata.secret'),
+                'env_key' => env('DADATA_API_KEY'),
+                'env_secret_present' => !empty(env('DADATA_SECRET_KEY')),
+                'apiKey_final_empty' => empty($apiKey),
+                'secretKey_final_empty' => empty($secretKey),
+            ]);
+
             // Создаем сервис и передаем ему ключи
             return new FiasApiService($apiKey, $secretKey);
         });

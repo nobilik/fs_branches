@@ -24,9 +24,30 @@ class FiasApiService // Вероятно, класс следует переим
         $this->apiKey = $apiKey;
         $this->secretKey = $secretKey;
 
-        // Если ключи не найдены, выбрасываем исключение
+        // Если ключи не найдены, попробуем дополнительные источники (getenv / _ENV / _SERVER)
         if (empty($this->apiKey) || empty($this->secretKey)) {
-             throw new Exception("DADATA API keys are missing in config '{$moduleName}.dadata'.");
+            $fallbackApiKey = getenv('DADATA_API_KEY') ?: ($_ENV['DADATA_API_KEY'] ?? null) ?: ($_SERVER['DADATA_API_KEY'] ?? null);
+            $fallbackSecret = getenv('DADATA_SECRET_KEY') ?: ($_ENV['DADATA_SECRET_KEY'] ?? null) ?: ($_SERVER['DADATA_SECRET_KEY'] ?? null);
+
+            if (!empty($fallbackApiKey) && empty($this->apiKey)) {
+                $this->apiKey = $fallbackApiKey;
+            }
+            if (!empty($fallbackSecret) && empty($this->secretKey)) {
+                $this->secretKey = $fallbackSecret;
+            }
+        }
+
+        // После попытки fallback — если ключи всё ещё отсутствуют, логируем и выбрасываем понятное исключение
+        if (empty($this->apiKey) || empty($this->secretKey)) {
+            $missing = [];
+            if (empty($this->apiKey)) {
+                $missing[] = 'DADATA_API_KEY';
+            }
+            if (empty($this->secretKey)) {
+                $missing[] = 'DADATA_SECRET_KEY';
+            }
+            \Log::error('Dadata keys missing when initializing FiasApiService', ['missing' => $missing, 'module_config' => "{$moduleName}.dadata"]);
+            throw new Exception('DADATA API keys are missing: ' . implode(',', $missing) . ". Ensure env vars and config '{$moduleName}.dadata' are set.");
         }
 
         // Инициализируем Guzzle Client с базовыми заголовками
