@@ -3,8 +3,8 @@ namespace Modules\NobilikBranches\Services;
 
 use Modules\NobilikBranches\Entities\Branch;
 use Modules\Tags\Entities\Tag;
-use Modules\NobilikBranches\Entities\TagGroup; // группированные теги модуль
-use Modules\NobilikBranches\Entities\TagGroupTag;
+use Modules\NobilikGroupedTags\Entities\TagGroup; // группированные теги модуль
+use Modules\NobilikGroupedTags\Entities\TagGroupTag;
 use Modules\Tags\Entities\ConversationTag;
 use Illuminate\Support\Facades\DB;
 use App\Conversation;
@@ -46,7 +46,7 @@ class BranchTagService
 
         // 3) получаем все группированные группы с пересечением на branchTagIds
         // TagGroupTag таблица связывает tag_group_id <-> tag_id
-        $groupIds = \Modules\NobilikBranches\Entities\TagGroupTag::whereIn('tag_id', $branchTagIds)
+        $groupIds = \Modules\NobilikGroupedTags\Entities\TagGroupTag::whereIn('tag_id', $branchTagIds)
             ->pluck('tag_group_id')->unique()->toArray();
 
         // Для каждой найденной группы с группировкой берём её конфиг
@@ -95,7 +95,7 @@ class BranchTagService
         }
 
         // 4) Теперь обработаем branch tags, которые НЕ принадлежат никакой группе (обычные теги)
-        $branchUngrouped = array_diff($branchTagIds, \Modules\NobilikBranches\Entities\TagGroupTag::whereIn('tag_id', $branchTagIds)->pluck('tag_id')->toArray());
+        $branchUngrouped = array_diff($branchTagIds, \Modules\NobilikGroupedTags\Entities\TagGroupTag::whereIn('tag_id', $branchTagIds)->pluck('tag_id')->toArray());
 
         foreach ($branchUngrouped as $tid) {
             $already = ConversationTag::where('conversation_id', $conversationId)
