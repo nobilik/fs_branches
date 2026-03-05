@@ -100,11 +100,44 @@ class BranchesServiceProvider extends ServiceProvider
             /** @var Config $config */
             $config = $app->make(Config::class);
             
-            // Гарантируем, что ключи будут строками, даже если config() вернет null 
-            // в критический момент (хотя здесь он должен быть доступен).
-            // Используем env() как последний запасной вариант, если config() еще не загружен
-            $apiKey = $config->get(NB_MODULE . '.dadata.key') ?? env('DADATA_API_KEY') ?? '';
-            $secretKey = $config->get(NB_MODULE . '.dadata.secret') ?? env('DADATA_SECRET_KEY') ?? '';
+            // Ключи в config могут быть NULL при устаревшем config:cache,
+            // поэтому дополнительно читаем runtime-переменные окружения.
+            $apiCandidates = [
+                $config->get(NB_MODULE . '.dadata.key'),
+                env('DADATA_API_KEY'),
+                getenv('DADATA_API_KEY') ?: null,
+                $_ENV['DADATA_API_KEY'] ?? null,
+                $_SERVER['DADATA_API_KEY'] ?? null,
+            ];
+            $secretCandidates = [
+                $config->get(NB_MODULE . '.dadata.secret'),
+                env('DADATA_SECRET_KEY'),
+                getenv('DADATA_SECRET_KEY') ?: null,
+                $_ENV['DADATA_SECRET_KEY'] ?? null,
+                $_SERVER['DADATA_SECRET_KEY'] ?? null,
+            ];
+
+            $apiKey = '';
+            foreach ($apiCandidates as $candidate) {
+                if (!empty($candidate)) {
+                    $apiKey = (string) $candidate;
+                    break;
+                }
+            }
+
+            $secretKey = '';
+            foreach ($secretCandidates as $candidate) {
+                if (!empty($candidate)) {
+                    $secretKey = (string) $candidate;
+                    break;
+                }
+            }
+
+            // Синхронизируем в runtime config, чтобы остальной код видел уже нормализованные значения.
+            if (!empty($apiKey) && !empty($secretKey)) {
+                $config->set(NB_MODULE . '.dadata.key', $apiKey);
+                $config->set(NB_MODULE . '.dadata.secret', $secretKey);
+            }
 
             // Debug: log which sources provided keys (do NOT log secret values)
             Log::debug('NobilikBranches: resolved Dadata keys', [
@@ -112,6 +145,8 @@ class BranchesServiceProvider extends ServiceProvider
                 'config_secret' => $config->get(NB_MODULE . '.dadata.secret'),
                 'env_key' => env('DADATA_API_KEY'),
                 'env_secret_present' => !empty(env('DADATA_SECRET_KEY')),
+                'getenv_key_present' => !empty(getenv('DADATA_API_KEY')),
+                'getenv_secret_present' => !empty(getenv('DADATA_SECRET_KEY')),
                 'apiKey_final_empty' => empty($apiKey),
                 'secretKey_final_empty' => empty($secretKey),
             ]);
