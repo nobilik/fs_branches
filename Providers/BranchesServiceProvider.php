@@ -101,34 +101,50 @@ class BranchesServiceProvider extends ServiceProvider
             $config = $app->make(Config::class);
             
             // Ключи в config могут быть NULL при устаревшем config:cache,
-            // поэтому дополнительно читаем runtime-переменные окружения.
+            // поэтому дополнительно читаем runtime-переменные и модульный .env.
             $apiCandidates = [
                 $config->get(NB_MODULE . '.dadata.key'),
+                $config->get('services.dadata.key'),
                 env('DADATA_API_KEY'),
+                env('DADATA_KEY'),
                 getenv('DADATA_API_KEY') ?: null,
+                getenv('DADATA_KEY') ?: null,
                 $_ENV['DADATA_API_KEY'] ?? null,
+                $_ENV['DADATA_KEY'] ?? null,
                 $_SERVER['DADATA_API_KEY'] ?? null,
+                $_SERVER['DADATA_KEY'] ?? null,
+                $this->readModuleEnvValue('DADATA_API_KEY'),
+                $this->readModuleEnvValue('DADATA_KEY'),
             ];
             $secretCandidates = [
                 $config->get(NB_MODULE . '.dadata.secret'),
+                $config->get('services.dadata.secret'),
                 env('DADATA_SECRET_KEY'),
+                env('DADATA_SECRET'),
                 getenv('DADATA_SECRET_KEY') ?: null,
+                getenv('DADATA_SECRET') ?: null,
                 $_ENV['DADATA_SECRET_KEY'] ?? null,
+                $_ENV['DADATA_SECRET'] ?? null,
                 $_SERVER['DADATA_SECRET_KEY'] ?? null,
+                $_SERVER['DADATA_SECRET'] ?? null,
+                $this->readModuleEnvValue('DADATA_SECRET_KEY'),
+                $this->readModuleEnvValue('DADATA_SECRET'),
             ];
 
             $apiKey = '';
             foreach ($apiCandidates as $candidate) {
+                $candidate = is_string($candidate) ? trim($candidate) : $candidate;
                 if (!empty($candidate)) {
-                    $apiKey = (string) $candidate;
+                    $apiKey = (string)$candidate;
                     break;
                 }
             }
 
             $secretKey = '';
             foreach ($secretCandidates as $candidate) {
+                $candidate = is_string($candidate) ? trim($candidate) : $candidate;
                 if (!empty($candidate)) {
-                    $secretKey = (string) $candidate;
+                    $secretKey = (string)$candidate;
                     break;
                 }
             }
@@ -139,14 +155,18 @@ class BranchesServiceProvider extends ServiceProvider
                 $config->set(NB_MODULE . '.dadata.secret', $secretKey);
             }
 
-            // Debug: log which sources provided keys (do NOT log secret values)
+            // Debug: log only presence, never key values.
             Log::debug('NobilikBranches: resolved Dadata keys', [
-                'config_key' => $config->get(NB_MODULE . '.dadata.key'),
-                'config_secret' => $config->get(NB_MODULE . '.dadata.secret'),
-                'env_key' => env('DADATA_API_KEY'),
+                'config_key_present' => !empty($config->get(NB_MODULE . '.dadata.key')),
+                'config_secret_present' => !empty($config->get(NB_MODULE . '.dadata.secret')),
+                'services_key_present' => !empty($config->get('services.dadata.key')),
+                'services_secret_present' => !empty($config->get('services.dadata.secret')),
+                'env_key_present' => !empty(env('DADATA_API_KEY')),
                 'env_secret_present' => !empty(env('DADATA_SECRET_KEY')),
                 'getenv_key_present' => !empty(getenv('DADATA_API_KEY')),
                 'getenv_secret_present' => !empty(getenv('DADATA_SECRET_KEY')),
+                'module_env_key_present' => !empty($this->readModuleEnvValue('DADATA_API_KEY')),
+                'module_env_secret_present' => !empty($this->readModuleEnvValue('DADATA_SECRET_KEY')),
                 'apiKey_final_empty' => empty($apiKey),
                 'secretKey_final_empty' => empty($secretKey),
             ]);
@@ -154,6 +174,39 @@ class BranchesServiceProvider extends ServiceProvider
             // Создаем сервис и передаем ему ключи
             return new FiasApiService($apiKey, $secretKey);
         });
+    }
+
+    protected function readModuleEnvValue(string $key): ?string
+    {
+        static $moduleEnv = null;
+
+        if ($moduleEnv === null) {
+            $moduleEnvPath = __DIR__ . '/../.env';
+            $moduleEnv = [];
+
+            if (is_file($moduleEnvPath) && is_readable($moduleEnvPath)) {
+                $lines = @file($moduleEnvPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                if (is_array($lines)) {
+                    foreach ($lines as $line) {
+                        $line = trim($line);
+                        if ($line === '' || strpos($line, '#') === 0 || strpos($line, '=') === false) {
+                            continue;
+                        }
+
+                        [$envKey, $envValue] = array_map('trim', explode('=', $line, 2));
+                        $envValue = trim($envValue, "\"'");
+                        $moduleEnv[$envKey] = $envValue;
+                    }
+                }
+            }
+        }
+
+        $value = $moduleEnv[$key] ?? null;
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        return trim($value);
     }
 
     /**

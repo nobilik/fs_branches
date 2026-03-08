@@ -21,19 +21,33 @@ class FiasApiService // Вероятно, класс следует переим
     {
         $moduleName = "nobilikbranches"; 
         // Теперь $apiKey гарантированно является строкой, переданной из Service Provider
-        $this->apiKey = $apiKey;
-        $this->secretKey = $secretKey;
+        $this->apiKey = trim($apiKey);
+        $this->secretKey = trim($secretKey);
 
         // Если ключи не найдены, попробуем дополнительные источники (getenv / _ENV / _SERVER)
         if (empty($this->apiKey) || empty($this->secretKey)) {
-            $fallbackApiKey = getenv('DADATA_API_KEY') ?: ($_ENV['DADATA_API_KEY'] ?? null) ?: ($_SERVER['DADATA_API_KEY'] ?? null);
-            $fallbackSecret = getenv('DADATA_SECRET_KEY') ?: ($_ENV['DADATA_SECRET_KEY'] ?? null) ?: ($_SERVER['DADATA_SECRET_KEY'] ?? null);
+            $fallbackApiKey = getenv('DADATA_API_KEY')
+                ?: getenv('DADATA_KEY')
+                ?: ($_ENV['DADATA_API_KEY'] ?? null)
+                ?: ($_ENV['DADATA_KEY'] ?? null)
+                ?: ($_SERVER['DADATA_API_KEY'] ?? null)
+                ?: ($_SERVER['DADATA_KEY'] ?? null)
+                ?: $this->readModuleEnvValue('DADATA_API_KEY')
+                ?: $this->readModuleEnvValue('DADATA_KEY');
+            $fallbackSecret = getenv('DADATA_SECRET_KEY')
+                ?: getenv('DADATA_SECRET')
+                ?: ($_ENV['DADATA_SECRET_KEY'] ?? null)
+                ?: ($_ENV['DADATA_SECRET'] ?? null)
+                ?: ($_SERVER['DADATA_SECRET_KEY'] ?? null)
+                ?: ($_SERVER['DADATA_SECRET'] ?? null)
+                ?: $this->readModuleEnvValue('DADATA_SECRET_KEY')
+                ?: $this->readModuleEnvValue('DADATA_SECRET');
 
             if (!empty($fallbackApiKey) && empty($this->apiKey)) {
-                $this->apiKey = $fallbackApiKey;
+                $this->apiKey = trim((string)$fallbackApiKey);
             }
             if (!empty($fallbackSecret) && empty($this->secretKey)) {
-                $this->secretKey = $fallbackSecret;
+                $this->secretKey = trim((string)$fallbackSecret);
             }
         }
 
@@ -62,6 +76,39 @@ class FiasApiService // Вероятно, класс следует переим
             // Установка таймаута для предотвращения зависания
             'timeout'  => 5.0, 
         ]);
+    }
+
+    protected function readModuleEnvValue(string $key): ?string
+    {
+        static $moduleEnv = null;
+
+        if ($moduleEnv === null) {
+            $moduleEnvPath = __DIR__ . '/../.env';
+            $moduleEnv = [];
+
+            if (is_file($moduleEnvPath) && is_readable($moduleEnvPath)) {
+                $lines = @file($moduleEnvPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                if (is_array($lines)) {
+                    foreach ($lines as $line) {
+                        $line = trim($line);
+                        if ($line === '' || strpos($line, '#') === 0 || strpos($line, '=') === false) {
+                            continue;
+                        }
+
+                        [$envKey, $envValue] = array_map('trim', explode('=', $line, 2));
+                        $envValue = trim($envValue, "\"'");
+                        $moduleEnv[$envKey] = $envValue;
+                    }
+                }
+            }
+        }
+
+        $value = $moduleEnv[$key] ?? null;
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        return trim($value);
     }
 
     /**
