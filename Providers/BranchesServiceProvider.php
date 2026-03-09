@@ -103,9 +103,14 @@ class BranchesServiceProvider extends ServiceProvider
             [$apiKey, $secretKey] = $this->resolveDadataCredentials($config);
 
             // Синхронизируем в runtime config, чтобы остальной код видел уже нормализованные значения.
-            if (!empty($apiKey) && !empty($secretKey)) {
+            if ($apiKey !== '') {
                 $config->set(NB_MODULE . '.dadata.key', $apiKey);
+                $config->set('services.dadata.key', $apiKey);
+            }
+
+            if ($secretKey !== '') {
                 $config->set(NB_MODULE . '.dadata.secret', $secretKey);
+                $config->set('services.dadata.secret', $secretKey);
             }
 
             // Debug: log only presence, never key values.
@@ -118,8 +123,10 @@ class BranchesServiceProvider extends ServiceProvider
                 'env_secret_present' => !empty(env('DADATA_SECRET_KEY')),
                 'getenv_key_present' => !empty(getenv('DADATA_API_KEY')),
                 'getenv_secret_present' => !empty(getenv('DADATA_SECRET_KEY')),
-                'module_env_key_present' => !empty($this->readModuleEnvValue('DADATA_API_KEY')),
-                'module_env_secret_present' => !empty($this->readModuleEnvValue('DADATA_SECRET_KEY')),
+                '_ENV_key_present' => !empty($_ENV['DADATA_API_KEY'] ?? null),
+                '_ENV_secret_present' => !empty($_ENV['DADATA_SECRET_KEY'] ?? null),
+                '_SERVER_key_present' => !empty($_SERVER['DADATA_API_KEY'] ?? null),
+                '_SERVER_secret_present' => !empty($_SERVER['DADATA_SECRET_KEY'] ?? null),
                 'apiKey_final_empty' => empty($apiKey),
                 'secretKey_final_empty' => empty($secretKey),
             ]);
