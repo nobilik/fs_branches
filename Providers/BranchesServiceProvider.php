@@ -135,10 +135,33 @@ class BranchesServiceProvider extends ServiceProvider
         $config = $this->app->make(Config::class);
         [$apiKey, $secretKey] = $this->resolveDadataCredentials($config);
 
-        if (!empty($apiKey) && !empty($secretKey)) {
+        if ($apiKey !== '') {
             $config->set(NB_MODULE . '.dadata.key', $apiKey);
-            $config->set(NB_MODULE . '.dadata.secret', $secretKey);
+            $config->set('services.dadata.key', $apiKey);
         }
+
+        if ($secretKey !== '') {
+            $config->set(NB_MODULE . '.dadata.secret', $secretKey);
+            $config->set('services.dadata.secret', $secretKey);
+        }
+
+        // This log is emitted during provider registration and helps debug config:cache stage.
+        Log::debug('NobilikBranches: syncDadataConfig', [
+            'config_key_present' => !empty($config->get(NB_MODULE . '.dadata.key')),
+            'config_secret_present' => !empty($config->get(NB_MODULE . '.dadata.secret')),
+            'services_key_present' => !empty($config->get('services.dadata.key')),
+            'services_secret_present' => !empty($config->get('services.dadata.secret')),
+            'env_key_present' => !empty(env('DADATA_API_KEY')),
+            'env_secret_present' => !empty(env('DADATA_SECRET_KEY')),
+            'getenv_key_present' => !empty(getenv('DADATA_API_KEY')),
+            'getenv_secret_present' => !empty(getenv('DADATA_SECRET_KEY')),
+            '_ENV_key_present' => !empty($_ENV['DADATA_API_KEY'] ?? null),
+            '_ENV_secret_present' => !empty($_ENV['DADATA_SECRET_KEY'] ?? null),
+            '_SERVER_key_present' => !empty($_SERVER['DADATA_API_KEY'] ?? null),
+            '_SERVER_secret_present' => !empty($_SERVER['DADATA_SECRET_KEY'] ?? null),
+            'apiKey_final_empty' => ($apiKey === ''),
+            'secretKey_final_empty' => ($secretKey === ''),
+        ]);
     }
 
     protected function resolveDadataCredentials(Config $config): array
