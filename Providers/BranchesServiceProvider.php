@@ -94,23 +94,65 @@ class BranchesServiceProvider extends ServiceProvider
     {
         $this->registerTranslations();
         $this->registerConfig();
-        $this->syncDadataConfig();
                 // 2. ЯВНАЯ ПРИВЯЗКА: Принуждаем Laravel разрешать ключи перед созданием сервиса
         $this->app->singleton(FiasApiService::class, function ($app) {
             
             /** @var Config $config */
             $config = $app->make(Config::class);
-            [$apiKey, $secretKey] = $this->resolveDadataCredentials($config);
+            
+            // Ключи в config могут быть NULL при устаревшем config:cache,
+            // поэтому дополнительно читаем runtime-переменные и модульный .env.
+            $apiCandidates = [
+                $config->get(NB_MODULE . '.dadata.key'),
+                $config->get('services.dadata.key'),
+                env('DADATA_API_KEY'),
+                env('DADATA_KEY'),
+                getenv('DADATA_API_KEY') ?: null,
+                getenv('DADATA_KEY') ?: null,
+                $_ENV['DADATA_API_KEY'] ?? null,
+                $_ENV['DADATA_KEY'] ?? null,
+                $_SERVER['DADATA_API_KEY'] ?? null,
+                $_SERVER['DADATA_KEY'] ?? null,
+                $this->readModuleEnvValue('DADATA_API_KEY'),
+                $this->readModuleEnvValue('DADATA_KEY'),
+            ];
+            $secretCandidates = [
+                $config->get(NB_MODULE . '.dadata.secret'),
+                $config->get('services.dadata.secret'),
+                env('DADATA_SECRET_KEY'),
+                env('DADATA_SECRET'),
+                getenv('DADATA_SECRET_KEY') ?: null,
+                getenv('DADATA_SECRET') ?: null,
+                $_ENV['DADATA_SECRET_KEY'] ?? null,
+                $_ENV['DADATA_SECRET'] ?? null,
+                $_SERVER['DADATA_SECRET_KEY'] ?? null,
+                $_SERVER['DADATA_SECRET'] ?? null,
+                $this->readModuleEnvValue('DADATA_SECRET_KEY'),
+                $this->readModuleEnvValue('DADATA_SECRET'),
+            ];
 
-            // Синхронизируем в runtime config, чтобы остальной код видел уже нормализованные значения.
-            if ($apiKey !== '') {
-                $config->set(NB_MODULE . '.dadata.key', $apiKey);
-                $config->set('services.dadata.key', $apiKey);
+            $apiKey = '';
+            foreach ($apiCandidates as $candidate) {
+                $candidate = is_string($candidate) ? trim($candidate) : $candidate;
+                if (!empty($candidate)) {
+                    $apiKey = (string)$candidate;
+                    break;
+                }
             }
 
-            if ($secretKey !== '') {
+            $secretKey = '';
+            foreach ($secretCandidates as $candidate) {
+                $candidate = is_string($candidate) ? trim($candidate) : $candidate;
+                if (!empty($candidate)) {
+                    $secretKey = (string)$candidate;
+                    break;
+                }
+            }
+
+            // Синхронизируем в runtime config, чтобы остальной код видел уже нормализованные значения.
+            if (!empty($apiKey) && !empty($secretKey)) {
+                $config->set(NB_MODULE . '.dadata.key', $apiKey);
                 $config->set(NB_MODULE . '.dadata.secret', $secretKey);
-                $config->set('services.dadata.secret', $secretKey);
             }
 
             // Debug: log only presence, never key values.
@@ -123,10 +165,8 @@ class BranchesServiceProvider extends ServiceProvider
                 'env_secret_present' => !empty(env('DADATA_SECRET_KEY')),
                 'getenv_key_present' => !empty(getenv('DADATA_API_KEY')),
                 'getenv_secret_present' => !empty(getenv('DADATA_SECRET_KEY')),
-                '_ENV_key_present' => !empty($_ENV['DADATA_API_KEY'] ?? null),
-                '_ENV_secret_present' => !empty($_ENV['DADATA_SECRET_KEY'] ?? null),
-                '_SERVER_key_present' => !empty($_SERVER['DADATA_API_KEY'] ?? null),
-                '_SERVER_secret_present' => !empty($_SERVER['DADATA_SECRET_KEY'] ?? null),
+                'module_env_key_present' => !empty($this->readModuleEnvValue('DADATA_API_KEY')),
+                'module_env_secret_present' => !empty($this->readModuleEnvValue('DADATA_SECRET_KEY')),
                 'apiKey_final_empty' => empty($apiKey),
                 'secretKey_final_empty' => empty($secretKey),
             ]);
@@ -136,86 +176,37 @@ class BranchesServiceProvider extends ServiceProvider
         });
     }
 
-    protected function syncDadataConfig(): void
+    protected function readModuleEnvValue(string $key): ?string
     {
-        /** @var Config $config */
-        $config = $this->app->make(Config::class);
-        [$apiKey, $secretKey] = $this->resolveDadataCredentials($config);
+        static $moduleEnv = null;
 
-        if ($apiKey !== '') {
-            $config->set(NB_MODULE . '.dadata.key', $apiKey);
-            $config->set('services.dadata.key', $apiKey);
-        }
+        if ($moduleEnv === null) {
+            $moduleEnvPath = __DIR__ . '/../.env';
+            $moduleEnv = [];
 
-        if ($secretKey !== '') {
-            $config->set(NB_MODULE . '.dadata.secret', $secretKey);
-            $config->set('services.dadata.secret', $secretKey);
-        }
+            if (is_file($moduleEnvPath) && is_readable($moduleEnvPath)) {
+                $lines = @file($moduleEnvPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                if (is_array($lines)) {
+                    foreach ($lines as $line) {
+                        $line = trim($line);
+                        if ($line === '' || strpos($line, '#') === 0 || strpos($line, '=') === false) {
+                            continue;
+                        }
 
-        // This log is emitted during provider registration and helps debug config:cache stage.
-        Log::debug('NobilikBranches: syncDadataConfig', [
-            'config_key_present' => !empty($config->get(NB_MODULE . '.dadata.key')),
-            'config_secret_present' => !empty($config->get(NB_MODULE . '.dadata.secret')),
-            'services_key_present' => !empty($config->get('services.dadata.key')),
-            'services_secret_present' => !empty($config->get('services.dadata.secret')),
-            'env_key_present' => !empty(env('DADATA_API_KEY')),
-            'env_secret_present' => !empty(env('DADATA_SECRET_KEY')),
-            'getenv_key_present' => !empty(getenv('DADATA_API_KEY')),
-            'getenv_secret_present' => !empty(getenv('DADATA_SECRET_KEY')),
-            '_ENV_key_present' => !empty($_ENV['DADATA_API_KEY'] ?? null),
-            '_ENV_secret_present' => !empty($_ENV['DADATA_SECRET_KEY'] ?? null),
-            '_SERVER_key_present' => !empty($_SERVER['DADATA_API_KEY'] ?? null),
-            '_SERVER_secret_present' => !empty($_SERVER['DADATA_SECRET_KEY'] ?? null),
-            'apiKey_final_empty' => ($apiKey === ''),
-            'secretKey_final_empty' => ($secretKey === ''),
-        ]);
-    }
-
-    protected function resolveDadataCredentials(Config $config): array
-    {
-        // Ключи в config могут быть NULL при устаревшем config:cache,
-        // поэтому читаем runtime-переменные окружения процесса.
-        $apiCandidates = [
-            $config->get(NB_MODULE . '.dadata.key'),
-            $config->get('services.dadata.key'),
-            env('DADATA_API_KEY'),
-            env('DADATA_KEY'),
-            getenv('DADATA_API_KEY') ?: null,
-            getenv('DADATA_KEY') ?: null,
-            $_ENV['DADATA_API_KEY'] ?? null,
-            $_ENV['DADATA_KEY'] ?? null,
-            $_SERVER['DADATA_API_KEY'] ?? null,
-            $_SERVER['DADATA_KEY'] ?? null,
-        ];
-        $secretCandidates = [
-            $config->get(NB_MODULE . '.dadata.secret'),
-            $config->get('services.dadata.secret'),
-            env('DADATA_SECRET_KEY'),
-            env('DADATA_SECRET'),
-            getenv('DADATA_SECRET_KEY') ?: null,
-            getenv('DADATA_SECRET') ?: null,
-            $_ENV['DADATA_SECRET_KEY'] ?? null,
-            $_ENV['DADATA_SECRET'] ?? null,
-            $_SERVER['DADATA_SECRET_KEY'] ?? null,
-            $_SERVER['DADATA_SECRET'] ?? null,
-        ];
-
-        return [
-            $this->firstNonEmptyCandidate($apiCandidates),
-            $this->firstNonEmptyCandidate($secretCandidates),
-        ];
-    }
-
-    protected function firstNonEmptyCandidate(array $candidates): string
-    {
-        foreach ($candidates as $candidate) {
-            $candidate = is_string($candidate) ? trim($candidate) : $candidate;
-            if (!empty($candidate)) {
-                return (string)$candidate;
+                        [$envKey, $envValue] = array_map('trim', explode('=', $line, 2));
+                        $envValue = trim($envValue, "\"'");
+                        $moduleEnv[$envKey] = $envValue;
+                    }
+                }
             }
         }
 
-        return '';
+        $value = $moduleEnv[$key] ?? null;
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        return trim($value);
     }
 
     /**
@@ -272,6 +263,8 @@ class BranchesServiceProvider extends ServiceProvider
             app(Factory::class)->load(__DIR__ . '/../Database/factories');
         }
     }
+        
+    // /**
     //  * https://github.com/nWidart/laravel-modules/issues/626
     //  * https://github.com/nWidart/laravel-modules/issues/418#issuecomment-342887911
     //  * @return [type] [description]
