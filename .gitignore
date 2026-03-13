@@ -2,3 +2,4 @@ task.txt
 .env
 scripts/dadata-cache-watchdog.sh
 Config/config.php
+Config/config.old

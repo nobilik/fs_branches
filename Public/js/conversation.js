@@ -28,7 +28,9 @@
             btn.addEventListener('click', function() {
                 overlay.classList.add('open');
                 body.classList.add('modal-open');
-                overlay.dataset.conversationId = this.dataset.conversationId;
+                const fallbackConversationId = getCurrentConversationId();
+                overlay.dataset.conversationId = this.dataset.conversationId || fallbackConversationId || '';
+                overlay.dataset.newConversation = this.dataset.newConversation === '1' ? '1' : '0';
 
                 searchInput.value = '';
                 searchResults.innerHTML = '';
@@ -47,7 +49,10 @@
         });
 
         overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) overlay.classList.remove('open');
+            if (e.target === overlay) {
+                overlay.classList.remove('open');
+                body.classList.remove('modal-open');
+            }
         });
 
         // ========================
@@ -112,7 +117,7 @@
                     <div class="text-muted small">${highlightedAddress}</div>
                     <div class="mt-2">${tagsHtml}</div>
                     <div class="mt-2 branch-card__button-container">
-                        <button class="branch-modal__submit-btn js-attach-branch" data-branch-id="${branch.id}">Выбрать</button>
+                        <button class="branch-modal__submit-btn js-attach-branch" data-branch-id="${branch.id}" data-branch-name="${escapeHtml(branch.name)}">Выбрать</button>
                     </div>
                 `;
 
@@ -129,6 +134,56 @@
 
             const branchId = btn.dataset.branchId;
             const conversationId = overlay.dataset.conversationId;
+            const isNewConversation = overlay.dataset.newConversation === '1';
+            const token = document.querySelector('meta[name="csrf-token"]').content;
+
+            if (isNewConversation) {
+                const selectedBranchInput = document.getElementById('nb-selected-branch-id');
+                const selectedBranchName = document.getElementById('nb-selected-branch-name');
+
+                if (!selectedBranchInput || !selectedBranchName || !branchId) {
+                    alert('Не удалось выбрать объект');
+                    return;
+                }
+
+                selectedBranchInput.value = branchId;
+                selectedBranchName.textContent = btn.dataset.branchName || 'Выбран';
+
+                // В новой заявке conversation_id обычно уже существует (черновик).
+                // Привязываем филиал сразу, чтобы модуль обязательных тегов увидел теги до отправки.
+                if (conversationId) {
+                    btn.disabled = true;
+                    fetch(`/branches/${branchId}/attach`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ conversation_id: conversationId })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert(data.message || 'Ошибка привязки объекта');
+                            btn.disabled = false;
+                        }
+                        overlay.classList.remove('open');
+                        body.classList.remove('modal-open');
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Ошибка на сервере');
+                        btn.disabled = false;
+                    });
+                    return;
+                }
+
+                overlay.classList.remove('open');
+                body.classList.remove('modal-open');
+                return;
+            }
 
             if (!branchId || !conversationId) {
                 alert('Не выбран объект или не найдена заявка');
@@ -136,7 +191,6 @@
             }
 
             btn.disabled = true;
-            const token = document.querySelector('meta[name="csrf-token"]').content;
 
             fetch(`/branches/${branchId}/attach`, {
                 method: 'POST',
@@ -152,6 +206,7 @@
             .then(data => {
                 if (data.success) {
                     overlay.classList.remove('open');
+                    body.classList.remove('modal-open');
                     window.location.reload();
                 } else {
                     alert(data.message || 'Ошибка');
@@ -205,9 +260,9 @@
         if (createBranchBtn && createBranchOverlay && createBranchForm) {
             createBranchBtn.addEventListener('click', function() {
                 createBranchOverlay.classList.add('open');
-                createBranchForm.querySelector('#branch-conversation-id').value =
-                    overlay.dataset.conversationId;
                 createBranchForm.reset();
+                const conversationId = overlay.dataset.conversationId || getCurrentConversationId() || '';
+                createBranchForm.querySelector('#branch-conversation-id').value = conversationId;
             });
 
             createBranchOverlay.querySelectorAll('.js-close-modal').forEach(btn => {
@@ -226,6 +281,7 @@
                 const token = document.querySelector('meta[name="csrf-token"]').content;
                 const formData = new FormData(createBranchForm);
                 const conversationId = formData.get('conversation_id');
+                const isNewConversation = overlay.dataset.newConversation === '1';
 
                 fetch('/branches', {
                     method: 'POST',
@@ -259,6 +315,39 @@
                     // **Используем data.branch, как определено в контроллере**
                     const createdBranch = data.branch; 
 
+                    if (isNewConversation) {
+                        const selectedBranchInput = document.getElementById('nb-selected-branch-id');
+                        const selectedBranchName = document.getElementById('nb-selected-branch-name');
+
+                        if (selectedBranchInput && selectedBranchName) {
+                            selectedBranchInput.value = createdBranch.id;
+                            selectedBranchName.textContent = createdBranch.name || 'Выбран';
+                        }
+
+                        // Для новой заявки пытаемся сразу привязать к черновику,
+                        // чтобы обязательные группы тегов считались заполненными до отправки.
+                        if (conversationId) {
+                            return fetch('/branches/' + createdBranch.id + '/attach', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': token,
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                credentials: 'same-origin',
+                                body: JSON.stringify({ conversation_id: conversationId })
+                            }).then(() => {
+                                overlay.classList.remove('open');
+                                body.classList.remove('modal-open');
+                                return null;
+                            });
+                        }
+
+                        overlay.classList.remove('open');
+                        body.classList.remove('modal-open');
+                        return null;
+                    }
+
                     // привязка к заявке
                     return fetch('/branches/' + createdBranch.id + '/attach', {
                         method: 'POST',
@@ -271,7 +360,11 @@
                         body: JSON.stringify({ conversation_id: conversationId })
                     });
                 })
-                .then(() => window.location.reload())
+                .then((result) => {
+                    if (result !== null) {
+                        window.location.reload();
+                    }
+                })
                 .catch(err => {
                     console.error(err);
                     // err.message будет содержать сообщение об ошибке, выброшенное выше
@@ -292,6 +385,14 @@
 
         function escapeRegExp(s) {
             return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function getCurrentConversationId() {
+            const bodyConversationId = body && body.dataset ? body.dataset.conversation_id : '';
+            const hiddenConversationId = document.querySelector('input[name="conversation_id"]')?.value || '';
+            const globalConversationId = (typeof window.getGlobalAttr === 'function' && window.getGlobalAttr('conversation_id')) || '';
+
+            return String(bodyConversationId || hiddenConversationId || globalConversationId || '').trim();
         }
     });
 })();

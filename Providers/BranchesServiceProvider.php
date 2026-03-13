@@ -7,8 +7,14 @@ use App\Conversation;
 use App\Events\CustomerCreatedConversation;
 use Modules\NobilikBranches\Observers\ConversationObserver; 
 use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Http\Request;
 
 use Modules\NobilikBranches\Services\FiasApiService;
+use Modules\NobilikBranches\Entities\Branch;
+use Modules\NobilikBranches\Entities\ConversationBranch;
+use Modules\Tags\Entities\Tag;
+use Modules\Tags\Entities\ConversationTag;
+use Modules\NobilikGroupedTags\Entities\TagGroup;
 
 use Illuminate\Support\Facades\Log;
 
@@ -69,6 +75,59 @@ class BranchesServiceProvider extends ServiceProvider
             echo view('nobilikbranches::partials.conversation_branch_card', compact('conversation'))->render();
             echo view('nobilikbranches::partials.branch_select_modal', compact('conversation'))->render();
             echo view('nobilikbranches::partials.branch_create_modal', compact('conversation'))->render();
+        });
+
+        // Показываем выбор филиала только при создании новой заявки,
+        // чтобы не дублировать UI для уже существующих заявок.
+        \Eventy::addAction('conversation.create_form.after_subject', function($conversation) {
+            if (!empty($conversation->id)) {
+                return;
+            }
+
+            $selectedBranchId = (int) old('branch_id', 0);
+            $selectedBranch = null;
+            if ($selectedBranchId > 0) {
+                $selectedBranch = Branch::with('address')->find($selectedBranchId);
+            }
+
+            echo view('nobilikbranches::partials.new_conversation_branch_field', [
+                'selectedBranchId' => $selectedBranchId,
+                'selectedBranch' => $selectedBranch,
+            ])->render();
+        });
+
+        // Модалки для выбора/создания филиала на странице новой заявки рендерим
+        // после формы, чтобы не получить вложенный <form> и поломку submit.
+        \Eventy::addAction('new_conversation_form.after', function($conversation) {
+            if (!empty($conversation->id)) {
+                return;
+            }
+
+            echo view('nobilikbranches::partials.branch_select_modal')->render();
+            echo view('nobilikbranches::partials.branch_create_modal')->render();
+        });
+
+        // Привязка филиала и его тегов должна происходить только после сохранения
+        // новой заявки, когда уже гарантирован conversation_id.
+        \Eventy::addAction('conversation.send_reply_save', function($conversation, $request = null) {
+            if (!$request instanceof Request) {
+                $request = request();
+            }
+
+            if (!$request instanceof Request) {
+                return;
+            }
+
+            if ((int) $request->input('is_create') !== 1) {
+                return;
+            }
+
+            $branchId = (int) $request->input('branch_id');
+            if ($branchId <= 0) {
+                return;
+            }
+
+            $this->attachBranchWithTags($conversation, $branchId);
         });
 
         \Eventy::addAction('menu.manage.after_mailboxes', function() {
@@ -284,5 +343,57 @@ class BranchesServiceProvider extends ServiceProvider
     public function provides()
     {
         return [];
+    }
+
+    protected function attachBranchWithTags(Conversation $conversation, int $branchId): void
+    {
+        $branch = Branch::find($branchId);
+        if (!$branch) {
+            return;
+        }
+
+        $branchTags = $branch->tagIds();
+        $conversationTags = ConversationTag::where('conversation_id', $conversation->id)
+            ->pluck('tag_id')
+            ->toArray();
+
+        $finalTags = $conversationTags;
+        $groups = TagGroup::with('tags')->get();
+
+        $allGroupedTagIds = $groups->pluck('tags.*.id')->flatten()->unique()->toArray();
+        $ungroupedBranchTags = array_diff($branchTags, $allGroupedTagIds);
+        $finalTags = array_unique(array_merge($finalTags, $ungroupedBranchTags));
+
+        foreach ($groups as $group) {
+            $maxTags = (int) $group->max_tags_for_conversation;
+            $groupTagIds = $group->tags->pluck('id')->toArray();
+
+            $branchGroupTags = array_intersect($branchTags, $groupTagIds);
+            $convGroupTags = array_intersect($finalTags, $groupTagIds);
+            $newTagsCount = count($branchGroupTags);
+
+            if ($maxTags > 0 && $newTagsCount > 0) {
+                $finalTags = array_diff($finalTags, $convGroupTags);
+                $tagsToAdd = array_slice($branchGroupTags, 0, $maxTags);
+                $finalTags = array_merge($finalTags, $tagsToAdd);
+            } elseif ($maxTags === 0 && $newTagsCount > 0) {
+                $finalTags = array_unique(array_merge($finalTags, $branchGroupTags));
+            }
+        }
+
+        $finalTags = array_unique($finalTags);
+
+        ConversationTag::where('conversation_id', $conversation->id)->delete();
+        foreach ($finalTags as $tagId) {
+            $tag = Tag::find($tagId);
+            if ($tag) {
+                $tag->attachToConversation($conversation->id);
+            }
+        }
+
+        ConversationBranch::updateOrCreate(
+            ['conversation_id' => $conversation->id],
+            ['branch_id' => $branch->id, 'attached_by' => auth()->id()]
+        );
     }
 }
